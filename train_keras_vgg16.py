@@ -14,13 +14,13 @@ import random
 
 IMG_PATH = 'Imgtrain/'
 #IMG_PATH = 'Imgtrain/'
-BATCH_SIZE = 48
+BATCH_SIZE = 128
 NB_EPOCH = 20
 NB_CLASSES = 2
 VERBOSE = 1
 VALIDATION_SPLIT = 0.25
 INIT_LR = 1e-3
-OPTIM = Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
+OPTIM = SGD()#Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
 
 
 def VGG_16():
@@ -66,6 +66,56 @@ def VGG_16():
     return model
 
 
+def LeNet():
+    model = Sequential()
+    # CONV => RELU => POOL
+    model.add(Conv2D(20, kernel_size=5, padding="same",
+                     input_shape=(224, 224, 3)))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    # CONV => RELU => POOL
+    model.add(Conv2D(50, kernel_size=5, padding="same"))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    # Flatten => RELU layers
+    model.add(Flatten())
+    model.add(Dense(500))
+    model.add(Activation("relu"))
+
+    # a softmax classifier
+    model.add(Dense(2))
+    model.add(Activation("softmax"))
+
+    return model
+
+
+def ModelCIF():
+    model = Sequential()
+
+    model.add(Conv2D(32, kernel_size=3, padding='same',
+                     input_shape=(224, 224, 3)))
+    model.add(Activation('relu'))
+    model.add(Conv2D(32, kernel_size=3, padding='same'))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(64, kernel_size=3, padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, 3, 3))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(2))
+    model.add(Activation('softmax'))
+    return model
+
+
 def load_image(path):
     list_file = os.listdir(path)
     random.seed(40)
@@ -91,7 +141,7 @@ def main():
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()), write_graph=True, write_grads=True, write_images=True,
                               histogram_freq=0)
     # fit
-    model = VGG_16()
+    model = LeNet()
     model.compile(loss='binary_crossentropy', optimizer=OPTIM, metrics=['accuracy'])
     history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=NB_EPOCH, verbose=VERBOSE,
                         validation_data=(X_test, Y_test),
@@ -103,10 +153,10 @@ def main():
 
     # save model
     model_json = model.to_json()
-    with open("model_n.json", "w") as json_file:
+    with open("model_ln.json", "w") as json_file:
         json_file.write(model_json)
     # serialize weights to HDF5
-    model.save_weights("model_n.h5")
+    model.save_weights("model_ln.h5")
 
 
 if __name__ == '__main__':
