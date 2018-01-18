@@ -10,14 +10,15 @@ import cv2, numpy as np
 import os
 from keras.callbacks import TensorBoard
 from time import time
+import random
 
-#IMG_PATH = '/home/administrator/cam6/Imgtrain/'
-IMG_PATH = '/home/administrator/projects/aikuub/Imgtrain/'
-BATCH_SIZE = 32
+IMG_PATH = 'Imgtrain/'
+#IMG_PATH = 'Imgtrain/'
+BATCH_SIZE = 48
 NB_EPOCH = 20
 NB_CLASSES = 2
 VERBOSE = 1
-VALIDATION_SPLIT = 0.2
+VALIDATION_SPLIT = 0.25
 INIT_LR = 1e-3
 OPTIM = Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
 
@@ -67,6 +68,8 @@ def VGG_16():
 
 def load_image(path):
     list_file = os.listdir(path)
+    random.seed(40)
+    random.shuffle(list_file)
     x_data = []
     y_data = []
     for file in list_file:
@@ -74,7 +77,7 @@ def load_image(path):
         im = cv2.resize(cv2.imread(path + file), (224, 224))
         im = img_to_array(im)
         x_data.append(im)
-        y_data.append(flabel[3])
+        y_data.append(flabel[len(flabel)-1])
     x_data = np.array(x_data, dtype='float')/255.0
     y_data = np.array(y_data)
     return x_data, y_data
@@ -97,7 +100,6 @@ def main():
     score = model.evaluate(X_test, Y_test, verbose=VERBOSE)
     print('Test score:', score[0])
     print('Test accuracy', score[1])
-    print(history.history.keys)
 
     # save model
     model_json = model.to_json()
