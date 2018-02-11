@@ -12,10 +12,10 @@ from keras.callbacks import TensorBoard
 from time import time
 import random
 
-
-IMG_PATH = '/home/evgenii/PycharmProject/AI-K2-UB/img-w/'
+IMG_PATH_TRAIN = 'Imgtrain4/train/'
+IMG_PATH_TEST= 'Imgtrain4/test/'
 #IMG_PATH = 'Imgtrain/'
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 NB_EPOCH = 100
 NB_CLASSES = 2
 VERBOSE = 1
@@ -26,7 +26,7 @@ OPTIM = SGD()#Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
 
 def VGG_16():
     model = Sequential()
-    model.add(ZeroPadding2D((1, 1), input_shape=(300, 300, 3)))
+    model.add(ZeroPadding2D((1, 1), input_shape=(224, 224, 1)))
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Conv2D(64, (3, 3), activation='relu'))
@@ -63,7 +63,7 @@ def VGG_16():
     model.add(Dropout(0.5))
     model.add(Dense(4096, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(5, activation='softmax'))
     return model
 
 
@@ -71,7 +71,7 @@ def LeNet():
     model = Sequential()
     # CONV => RELU => POOL
     model.add(Conv2D(20, kernel_size=5, padding="same",
-                     input_shape=(250, 250, 3)))
+                     input_shape=(224, 224, 1)))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # CONV => RELU => POOL
@@ -84,7 +84,7 @@ def LeNet():
     model.add(Activation("relu"))
 
     # a softmax classifier
-    model.add(Dense(2))
+    model.add(Dense(5))
     model.add(Activation("softmax"))
 
     return model
@@ -93,8 +93,8 @@ def LeNet():
 def ModelCIF():
     model = Sequential()
 
-    model.add(Conv2D(32, kernel_size=3, padding='same',
-                     input_shape=(350, 350, 3)))
+    model.add(Conv2D(32, kernel_size=5, padding='same',
+                     input_shape=(224, 224, 3)))
     model.add(Activation('relu'))
     model.add(Conv2D(32, kernel_size=3, padding='same'))
     model.add(Activation('relu'))
@@ -112,20 +112,20 @@ def ModelCIF():
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(2))
+    model.add(Dense(5))
     model.add(Activation('softmax'))
     return model
 
 
 def load_image(path):
     list_file = os.listdir(path)
-    random.seed(30)
+    random.seed(40)
     random.shuffle(list_file)
     x_data = []
     y_data = []
     for file in list_file:
         flabel = os.path.splitext(file)[0].split('_')
-        im = cv2.resize(cv2.imread(path + file), (250, 250))
+        im = cv2.resize(cv2.imread(path + file,  cv2.IMREAD_GRAYSCALE), (224, 224))
         im = img_to_array(im)
         x_data.append(im)
         y_data.append(flabel[len(flabel)-1])
@@ -135,15 +135,17 @@ def load_image(path):
 
 
 def main():
-    X, Y = load_image(IMG_PATH)
-    Y = np_utils.to_categorical(Y, num_classes=2)
-    (X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=.25, random_state=30)
+    X_train, Y_train = load_image(IMG_PATH_TRAIN)
+    Y_train = np_utils.to_categorical(Y_train, num_classes=5)
+    X_test, Y_test = load_image(IMG_PATH_TEST)
+    Y_test= np_utils.to_categorical(Y_test, num_classes=5)
+    #(X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=.25, random_state=40)
 
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()), write_graph=True, write_grads=True, write_images=True,
                               histogram_freq=0)
     # fit
-    model = LeNet()
-    model.compile(loss='binary_crossentropy', optimizer=OPTIM, metrics=['accuracy'])
+    model = VGG_16()
+    model.compile(loss='categorical_crossentropy', optimizer=OPTIM, metrics=['accuracy'])
     history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=NB_EPOCH, verbose=VERBOSE,
                         validation_data=(X_test, Y_test),
                         validation_split=VALIDATION_SPLIT, callbacks=[tensorboard])
@@ -154,10 +156,10 @@ def main():
 
     # save model
     model_json = model.to_json()
-    with open("model_pc_au.json", "w") as json_file:
+    with open("model_c_ln_1.json", "w") as json_file:
         json_file.write(model_json)
-    # serialize weights to HDF5
-    model.save_weights("model_pc_au.h5")
+        #serialize weights to HDF5
+    model.save_weights("model_c_ln_1.h5")
 
 
 if __name__ == '__main__':
