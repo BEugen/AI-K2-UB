@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="18a399b0-6e8b-4f21-8315-d99d757cdc5b" name="skzasutp0004" url="http://172.31.182.40">
+        <fileTransfer host="172.31.182.40" port="22" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="b88c2a5b-4f7f-457e-8b1b-a0a7165be8de" name="skzasutp0003" url="http://172.31.182.33">
+        <fileTransfer host="172.31.182.33" port="22" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="680fc1ba-affe-444d-a1f4-0b4a0e0542e9" name="azure" url="http://localhost">
+        <fileTransfer host="localhost" port="23" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="23" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="d1e862f5-9fa7-49d5-8adf-c10367eff6a0" name="pc" url="http://172.31.164.137">
+        <fileTransfer host="172.31.164.137" port="22" rootFolder="/opencv-py" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
