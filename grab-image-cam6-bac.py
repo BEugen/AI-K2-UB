@@ -8,12 +8,12 @@ import cv2, numpy as np
 
 from smb.SMBConnection import SMBConnection
 
-CAM_NAME = 'CAM6'
-USER_NAME = 'Admin'
-PASS = '111'
-CLIENT_NAME = 'skzasutp0004'
-SERVER_NAME = 'VIDEOSRV-1'
-SERVER_IP = '192.168.0.1'
+CAM_NAME = ''
+USER_NAME = ''
+PASS = ''
+CLIENT_NAME = ''
+SERVER_NAME = ''
+SERVER_IP = ''
 
 FILE_FOLDER = 'Thumbs'
 FILE_NAME = 'cam6.jpg'
