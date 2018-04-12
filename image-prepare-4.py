@@ -43,11 +43,12 @@ def img_prepare(path_read, path_store):
     #im = np.multiply(im, img*0.3)
     #im = cv2.blur(im, (3, 3))
     img = cv2.blur(im, (1, 1))
-    igg = cv2.Canny(img, 70, 200)
-    igg = cv2.blur(igg, (5, 5))
-    # igg = cv2.Canny(igg, 60, 180)
-    rt, igg1 = cv2.threshold(igg, 5, 120, cv2.THRESH_BINARY)
-    im = cv2.addWeighted(im, 0.9, igg1, 0.15, 0)
+    img = cv2.adaptiveThreshold(img, 10,
+                                cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 51, 1)
+    img = cv2.multiply(img, 0.2)
+    img = cv2.blur(img, (5, 5))
+    im = cv2.multiply(im, 0.5)
+    im = cv2.multiply(im, img)
     cv2.imwrite(path_store, im, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
 
