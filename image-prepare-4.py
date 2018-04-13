@@ -42,13 +42,27 @@ def img_prepare(path_read, path_store):
     #                            cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 51, 1)
     #im = np.multiply(im, img*0.3)
     #im = cv2.blur(im, (3, 3))
-    img = cv2.blur(im, (1, 1))
-    igg = cv2.Canny(img, 70, 200)
-    igg = cv2.blur(igg, (5, 5))
-    # igg = cv2.Canny(igg, 60, 180)
-    rt, igg1 = cv2.threshold(igg, 5, 120, cv2.THRESH_BINARY)
-    im = cv2.addWeighted(im, 0.9, igg1, 0.15, 0)
-    cv2.imwrite(path_store, im, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+    #-----------------------
+    #img = cv2.blur(im, (1, 1))
+    #img = cv2.adaptiveThreshold(img, 10,
+    #                            cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 51, 1)
+    #img = cv2.multiply(img, 0.2)
+    #img = cv2.blur(img, (5, 5))
+    #im = cv2.multiply(im, 0.5)
+    #im = cv2.multiply(im, img)
+    im_g = cv2.GaussianBlur(im, (3, 3), 0)
+    kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+    im_f = cv2.filter2D(im_g, -1, kernel, (-1, -1))
+    im_wh = cv2.addWeighted(im_f, 1.5, im, -0.5, 0)
+    im_ad = cv2.adaptiveThreshold(im_wh, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 51, 20)
+    struct_element = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    im_erod = cv2.erode(im_ad, struct_element)
+    im_dilate = cv2.dilate(im_erod, struct_element)
+    ot_tr, im_dilate = cv2.threshold(im_dilate, 0, 127, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    hi_tr = ot_tr
+    lo_tr = ot_tr * 0.5
+    im_can = cv2.Canny(im_dilate, lo_tr, hi_tr)
+    cv2.imwrite(path_store, im_can, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
 
 if __name__ == '__main__':
