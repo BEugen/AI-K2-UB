@@ -12,11 +12,11 @@ from keras.callbacks import TensorBoard
 from time import time
 import random
 
-IMG_PATH_TRAIN = 'Imgtrain4/train/'
-IMG_PATH_TEST= 'Imgtrain4/test/'
+IMG_PATH_TRAIN = 'Imagetrain/train/'
+IMG_PATH_TEST= 'Imagetrain/test/'
 #IMG_PATH = 'Imgtrain/'
 BATCH_SIZE = 128
-NB_EPOCH = 100
+NB_EPOCH = 76
 NB_CLASSES = 2
 VERBOSE = 1
 VALIDATION_SPLIT = 0.25
@@ -74,17 +74,19 @@ def LeNet():
                      input_shape=(224, 224, 1)))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.5))
     # CONV => RELU => POOL
     model.add(Conv2D(50, kernel_size=5, padding="same"))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.5))
     # Flatten => RELU layers
     model.add(Flatten())
     model.add(Dense(500))
     model.add(Activation("relu"))
 
     # a softmax classifier
-    model.add(Dense(5))
+    model.add(Dense(3))
     model.add(Activation("softmax"))
 
     return model
@@ -136,15 +138,15 @@ def load_image(path):
 
 def main():
     X_train, Y_train = load_image(IMG_PATH_TRAIN)
-    Y_train = np_utils.to_categorical(Y_train, num_classes=5)
+    Y_train = np_utils.to_categorical(Y_train, num_classes=3)
     X_test, Y_test = load_image(IMG_PATH_TEST)
-    Y_test= np_utils.to_categorical(Y_test, num_classes=5)
+    Y_test= np_utils.to_categorical(Y_test, num_classes=3)
     #(X_train, X_test, Y_train, Y_test) = train_test_split(X, Y, test_size=.25, random_state=40)
 
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()), write_graph=True, write_grads=True, write_images=True,
                               histogram_freq=0)
     # fit
-    model = VGG_16()
+    model = LeNet()
     model.compile(loss='categorical_crossentropy', optimizer=OPTIM, metrics=['accuracy'])
     history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=NB_EPOCH, verbose=VERBOSE,
                         validation_data=(X_test, Y_test),
@@ -156,10 +158,10 @@ def main():
 
     # save model
     model_json = model.to_json()
-    with open("model_c_ln_1.json", "w") as json_file:
+    with open("model_ln_4.json", "w") as json_file:
         json_file.write(model_json)
         #serialize weights to HDF5
-    model.save_weights("model_c_ln_1.h5")
+    model.save_weights("model_ln_4.h5")
 
 
 if __name__ == '__main__':
