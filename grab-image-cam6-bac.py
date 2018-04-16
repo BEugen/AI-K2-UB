@@ -25,12 +25,13 @@ STORE_MCLASS = '/home/administrator/cam6/'
 
 MODEL_NAME = '/home/administrator/cam6/script/model_ln'
 MODEL_NAME_MCL = '/home/administrator/cam6/script/model_c_ln_1'
+CLASS_STOP = -1
 
 
 def store_image(path_save, path_load, class_number, pred):
     img = Image.open(path_load)
     img = img.crop((21, 52, 266, 266))
-    img.save(path_save + '_' + str(round(pred*100, 2)) + '_' + class_number + '.jpg')
+    img.save(path_save + '_' + str(round(pred * 100, 2)) + '_' + class_number + '.jpg')
 
 
 def list_to_dict(li):
@@ -64,6 +65,11 @@ def main():
                     (str(file_create_time.minute) if file_create_time.minute > 9 else '0' + str(
                         file_create_time.minute))
 
+        bs = base.Psql()
+        im = cv2.imread(file_obj.name)
+        #shutil.copy2(file_obj.name, STORE_PATH + 'img/' + file_name + '.jpg')
+        im = im[72:316, 37:241]
+
         json_file = open(MODEL_NAME + '.json', 'r')
         loaded_model_json = json_file.read()
         json_file.close()
@@ -71,15 +77,28 @@ def main():
         loaded_model.load_weights(MODEL_NAME + '.h5')
         sgd = SGD(lr=0.001, momentum=0.8, decay=0.0, nesterov=False)
         loaded_model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+        im_l, guid, fd = bs.loadlast()
+        if file_create_time == fd:
+            return
+        score = 1.0
+        test = len(im_l)
+        if im_l is not None and len(im_l) > 0:
+            grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)
+            grayB = cv2.cvtColor(cv2.resize(im_l, (224, 224)), cv2.COLOR_BGR2GRAY)
+            (score, diff) = compare_ssim(grayA, grayB, full=True)
+            if score > 0.7:
+                bs.updatelast(guid, score)
+                bs.savestatistic(CLASS_STOP)
+                return
+        im_p = cv2.resize(im, (224, 224))
+        im_p = np.array(im_p, dtype='float') / 255.0
+        im_p = np.expand_dims(im_p, axis=0)
+        (empty, full) = loaded_model.predict(im_p)[0]
+        guid = bs.save(im, score, empty, full, file_create_time)
 
-        im = cv2.imread(file_obj.name)
-        im = im[21:266, 52:266]
-        im = cv2.resize(im, (224, 224))
-        im = np.array(im, dtype='float')/255.0
-        im = np.expand_dims(im, axis=0)
-        (empty, full) = loaded_model.predict(im)[0]
         if empty > full:
             store_image(STORE_EMPTY + file_name, file_obj.name, '0', empty)
+            bs.savestatistic(0)
         else:
             json_file = open(MODEL_NAME_MCL + '.json', 'r')
             loaded_model_json = json_file.read()
@@ -88,16 +107,18 @@ def main():
             loaded_model.load_weights(MODEL_NAME_MCL + '.h5')
             sgd = SGD(lr=0.001, momentum=0.8, decay=0.0, nesterov=False)
             loaded_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-            predict = loaded_model.predict(im)[0]
+            predict = loaded_model.predict(im_p)[0]
             dct, ind = list_to_dict(predict)
+            bs.savecategory(guid, ind, dct)
+            bs.savestatistic(ind)
             store_image(STORE_MCLASS + str(ind) + '/' + file_name, file_obj.name, str(ind), dct[ind])
 
-  #      shutil.copy2(file_obj.name, STORE_PATH + file_name)
+    #      shutil.copy2(file_obj.name, STORE_PATH + file_name)
     except Exception as e:
         print(e)
 
     finally:
-        file_obj.close()
+        pass
 
 
 if __name__ == '__main__':
