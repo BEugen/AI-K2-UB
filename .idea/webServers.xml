@@ -18,16 +18,8 @@
           <option name="port" value="22" />
         </fileTransfer>
       </webServer>
-      <webServer id="680fc1ba-affe-444d-a1f4-0b4a0e0542e9" name="azure" url="http://localhost">
-        <fileTransfer host="localhost" port="23" accessType="SFTP">
-          <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" />
-          </advancedOptions>
-          <option name="port" value="23" />
-        </fileTransfer>
-      </webServer>
-      <webServer id="d1e862f5-9fa7-49d5-8adf-c10367eff6a0" name="pc" url="http://172.31.164.137">
-        <fileTransfer host="172.31.164.137" port="22" rootFolder="/opencv-py" accessType="SFTP">
+      <webServer id="680fc1ba-affe-444d-a1f4-0b4a0e0542e9" name="azure" url="http://datalerning-lin.southcentralus.cloudapp.azure.com">
+        <fileTransfer host="datalerning-lin.southcentralus.cloudapp.azure.com" port="22" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>

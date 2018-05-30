@@ -39,6 +39,8 @@ class RecognizeK2(object):
     def __snn_result(self, text):
         if '32' in text and '2' in text.replace('32', '', 1):  # dust
             return 0
+        if '31' in text and '1' in text.replace('31', '', 1):  # dust
+            return 0
         if '51' in text and '5' in text.replace('51', '', 1):  # bricket
             return 2
         return 1  # dust + bricket
