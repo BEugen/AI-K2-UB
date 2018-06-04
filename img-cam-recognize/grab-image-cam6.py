@@ -6,8 +6,9 @@ import cv2, numpy as np
 import base, recognize
 from skimage.measure import compare_ssim
 import random
-#from smb.SMBConnection import SMBConnection
+import time
 
+# from smb.SMBConnection import SMBConnection
 
 
 FILE_FOLDER = '/mnt/data/data/ub-im/Sorted/2'
@@ -15,12 +16,18 @@ FILE_FOLDER = '/mnt/data/data/ub-im/Sorted/2'
 MODEL_NAME = '3class-2nn/model_ln_fnn'
 MODEL_NAME_MCL = '3class-2nn/model_ln'
 
-
+SCORE_STOP = 0.7
+STOP_CLASS = -1
+EMPTY_CLASS = 0
+DUST_CLASS = 2
+IMERROR_CLASS = 1
+BRBRIKET_CLASS = 3
+BRIKET_CLASS = 4
 
 def store_image(path_save, path_load, class_number, pred):
     img = Image.open(path_load)
     img = img.crop((21, 52, 266, 266))
-    img.save(path_save + '_' + str(round(pred*100, 2)) + '_' + class_number + '.jpg')
+    img.save(path_save + '_' + str(round(pred * 100, 2)) + '_' + class_number + '.jpg')
 
 
 def list_to_dict(li):
@@ -38,67 +45,58 @@ def list_to_dict(li):
 
 
 def main():
-    try:
-        #conn = SMBConnection(USER_NAME, PASS, CLIENT_NAME, SERVER_NAME, use_ntlm_v2=True)
-        #conn.connect(SERVER_IP, 139)
-        #file_obj = tempfile.NamedTemporaryFile()
-        #conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
-        #file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
-        #file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
-        #file_name = CAM_NAME + '_' + \
-        #            (str(file_create_time.day) if file_create_time.day > 9 else '0' + str(file_create_time.day)) + \
-        #            (str(file_create_time.month) if file_create_time.month > 9 else '0' + str(file_create_time.month)) + \
-        #            str(file_create_time.year) + '_' + \
-        #            (str(file_create_time.hour) if file_create_time.hour > 9 else '0' + str(
-        #                file_create_time.hour)) + ':' + \
-        #            (str(file_create_time.minute) if file_create_time.minute > 9 else '0' + str(
-        #                file_create_time.minute))
-        #
-        rc = recognize.RecognizeK2()
-        bs = base.Psql()
-        imfile = random.choice(os.listdir(FILE_FOLDER))
-        im = cv2.imread(FILE_FOLDER + '/' + imfile)
-        print(im.shape)
-        rc.recognize(im)
+    rc = recognize.RecognizeK2()
+    bs = base.Psql()
+    while True:
+        time.sleep(25)
+        try:
+            conn = SMBConnection(USER_NAME, PASS, CLIENT_NAME, SERVER_NAME, use_ntlm_v2=True)
+            conn.connect(SERVER_IP, 139)
+            file_obj = tempfile.NamedTemporaryFile()
+            conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
+            file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
+            file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
+            file_name = CAM_NAME + '_' + \
+                        (str(file_create_time.day) if file_create_time.day > 9 else '0' + str(file_create_time.day)) + \
+                        (str(file_create_time.month) if file_create_time.month > 9 else '0' + str(
+                            file_create_time.month)) + \
+                        str(file_create_time.year) + '_' + \
+                        (str(file_create_time.hour) if file_create_time.hour > 9 else '0' + str(
+                            file_create_time.hour)) + ':' + \
+                        (str(file_create_time.minute) if file_create_time.minute > 9 else '0' + str(
+                            file_create_time.minute))
+            im = cv2.imread(file_obj.name)
+            x1, x2, y1, y2 = bs.getcropimg()
+            if x1 is None:
+                continue
+            im = im[y1:y2, x1:x2]
+            rc_result = rc.recognize(im)
+            im_l, img_guid, img_tfile = bs.loadimglast()
+            if file_create_time == img_tfile:
+                continue
+            if im_l is not None and len(im_l) > 0:
+                grayA = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+                grayB = cv2.cvtColor(im_l, cv2.COLOR_BGR2GRAY)
+                (score, diff) = compare_ssim(grayA, grayB, full=True)
+                rc_result['fnn']['-1'] = score
+                if score > SCORE_STOP:
+                    bs.updateimglast(img_guid, score)
+                    continue
 
-        json_file = open(MODEL_NAME + '.json', 'r')
-        loaded_model_json = json_file.read()
-        json_file.close()
-        loaded_model = model_from_json(loaded_model_json)
-        loaded_model.load_weights(MODEL_NAME + '.h5')
-        sgd = SGD(lr=0.001, momentum=0.8, decay=0.0, nesterov=False)
-        loaded_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+            for x in range(1, 4):
+                if 'snn' + str(x) is not rc_result.keys():
+                    rc_result['snn' + str(x)] = ''
+            bs.savedata(im, rc_result, file_create_time)
+            bs.savestatistic(ind)
+        except Exception as e:
+            print(e)
 
-        im_l, guid = bs.loadlast()
-        grayA = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        grayB = cv2.cvtColor(im_l, cv2.COLOR_BGR2GRAY)
-        (score, diff) = compare_ssim(grayA, grayB, full=True)
-        if score > 0.8:
-            bs.updatelast(guid)
-            return
+        finally:
+            pass
 
-        im_p = cv2.resize(im, (224, 224))
-        im_p = np.array(im_p, dtype='float')/255.0
-        im_p = np.expand_dims(im_p, axis=0)
-        (empty, full) = loaded_model.predict(im_p)
-        guid = bs.save(im, score, empty, full)
-        json_file = open(MODEL_NAME_MCL + '.json', 'r')
-        loaded_model_json = json_file.read()
-        json_file.close()
-        loaded_model = model_from_json(loaded_model_json)
-        loaded_model.load_weights(MODEL_NAME_MCL + '.h5')
-        sgd = SGD(lr=0.001, momentum=0.8, decay=0.0, nesterov=False)
-        loaded_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-        predict = loaded_model.predict(im)[0]
-        dct, ind = list_to_dict(predict)
-        bs.savecategory(guid, ind, dct)
-        bs.savestatistic(ind)
-
-    except Exception as e:
-        print(e)
-
-    finally:
-        pass
+def clssforstatisitc(data):
+    if data['fnn']['-1'] >= SCORE_STOP:
+        return STOP_CLASS
 
 
 if __name__ == '__main__':
