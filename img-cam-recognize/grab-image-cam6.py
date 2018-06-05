@@ -1,10 +1,12 @@
 
-from PIL import Image
 import cv2
 import base, recognize
 from skimage.measure import compare_ssim
 import time
 from smb.SMBConnection import SMBConnection
+import tempfile
+from datetime import datetime
+
 
 
 SCORE_STOP = 0.7
@@ -47,13 +49,14 @@ def main():
             if x1 is None:
                 continue
             im = im[y1:y2, x1:x2]
+            cv2.imwrite('CAM6.jpg', im, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             rc_result = rc.recognize(im)
             im_l, img_guid, img_tfile = bs.loadimglast()
             if file_create_time == img_tfile:
                 continue
             if im_l is not None and len(im_l) > 0:
-                grayA = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-                grayB = cv2.cvtColor(im_l, cv2.COLOR_BGR2GRAY)
+                grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)
+                grayB = cv2.cvtColor(cv2.resize(im_l, (224, 224)), cv2.COLOR_BGR2GRAY)
                 (score, diff) = compare_ssim(grayA, grayB, full=True)
                 rc_result['fnn']['-1'] = score
                 if score > SCORE_STOP:
@@ -63,6 +66,8 @@ def main():
             for x in range(1, 4):
                 if 'snn' + str(x) is not rc_result.keys():
                     rc_result['snn' + str(x)] = ''
+            if 'snn' is not rc_result.keys():
+                rc_result['snn'] = -1
             bs.savedata(im, rc_result, file_create_time)
             bs.savestatistic(classforstatistic(rc_result))
         except Exception as e:
@@ -74,7 +79,7 @@ def main():
 def classforstatistic(data):
     if data['fnn']['-1'] >= SCORE_STOP:
         return STOP_CLASS
-    ik = max(data, key=data.get)
+    ik = int(max(data['fnn'], key=data['fnn'].get))
     if ik == 0:
         return EMPTY_CLASS
     if ik == 1:

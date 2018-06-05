@@ -24,7 +24,7 @@ K.set_session(sess)
 
 class RecognizeK2(object):
     def __init__(self):
-        self.folder_nn = 'nn/'
+        self.folder_nn = '/home/administrator/AI-K2-UB/img-cam-recognize/nn/'
         self.pfnn = 'model_ln_fnn'
         self.psnn1 = 'model-ub-rnn-ia2'
         self.psnn2 = 'model_ln_snn_ic'
@@ -220,7 +220,7 @@ class RecognizeK2(object):
         mx = 0.0
         ind_max = 0
         for item in li:
-            dct[ind] = item
+            dct[str(ind)] = item
             if item > mx:
                 ind_max = ind
                 mx = item

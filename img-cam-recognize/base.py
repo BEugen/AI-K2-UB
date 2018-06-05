@@ -103,7 +103,7 @@ class Psql(object):
             cur.close()
             if len(data) == 0:
                 return None, None, None, None
-            return data[0][1], data[0][2], data[0][3], data[0][4]
+            return data[0][2], data[0][3], data[0][4], data[0][5]
         except Exception as e:
             print(e)
             return None
@@ -114,24 +114,24 @@ class Psql(object):
         guid = uuid.uuid4()
 
         cur.execute("INSERT INTO aik2_conveyer2status VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (str(guid), datetime.now(), float(data['fnn']['-1']), float(data['fnn']['0']),
+                    (str(guid), datetime.now(),  float(data['fnn']['0']),
                      float(data['fnn']['1']), float(data['fnn']['2']), data['snn1'], data['snn2'], data['snn3'],
                      float(data['snn']),
-                     buff, tfile))
+                     buff.decode('utf-8'), tfile, float(data['fnn']['-1'])))
         self.connect.commit()
         cur.close()
 
     def loadimglast(self):
         try:
             cur = self.connect.cursor()
-            cur.execute("SELECT * FROM aik2_conveyer2status order by stamp desc LIMIT 1")
+            cur.execute("SELECT * FROM aik2_conveyer2status order by tstamp desc LIMIT 1")
             data = cur.fetchall()
             cur.close()
             if len(data) == 0:
                 return None
-            im = base64.b64decode(data[0][10].encode('utf-8'))
+            im = base64.b64decode(data[0][9].encode('utf-8'))
             im = cv2.imdecode(np.asarray(bytearray(im), dtype='uint8'), cv2.IMREAD_COLOR)
-            return im, data[0][0], data[0][11] #img, guid, time img file
+            return im, data[0][0], data[0][10] #img, guid, time img file
         except Exception as e:
             print(e)
 
