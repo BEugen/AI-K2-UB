@@ -1,20 +1,11 @@
-import os
+
 from PIL import Image
-from keras.optimizers import SGD
-from keras.models import model_from_json
-import cv2, numpy as np
+import cv2
 import base, recognize
 from skimage.measure import compare_ssim
-import random
 import time
+from smb.SMBConnection import SMBConnection
 
-# from smb.SMBConnection import SMBConnection
-
-
-FILE_FOLDER = '/mnt/data/data/ub-im/Sorted/2'
-
-MODEL_NAME = '3class-2nn/model_ln_fnn'
-MODEL_NAME_MCL = '3class-2nn/model_ln'
 
 SCORE_STOP = 0.7
 STOP_CLASS = -1
@@ -23,11 +14,6 @@ DUST_CLASS = 2
 IMERROR_CLASS = 1
 BRBRIKET_CLASS = 3
 BRIKET_CLASS = 4
-
-def store_image(path_save, path_load, class_number, pred):
-    img = Image.open(path_load)
-    img = img.crop((21, 52, 266, 266))
-    img.save(path_save + '_' + str(round(pred * 100, 2)) + '_' + class_number + '.jpg')
 
 
 def list_to_dict(li):
@@ -56,15 +42,6 @@ def main():
             conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
             file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
             file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
-            file_name = CAM_NAME + '_' + \
-                        (str(file_create_time.day) if file_create_time.day > 9 else '0' + str(file_create_time.day)) + \
-                        (str(file_create_time.month) if file_create_time.month > 9 else '0' + str(
-                            file_create_time.month)) + \
-                        str(file_create_time.year) + '_' + \
-                        (str(file_create_time.hour) if file_create_time.hour > 9 else '0' + str(
-                            file_create_time.hour)) + ':' + \
-                        (str(file_create_time.minute) if file_create_time.minute > 9 else '0' + str(
-                            file_create_time.minute))
             im = cv2.imread(file_obj.name)
             x1, x2, y1, y2 = bs.getcropimg()
             if x1 is None:
@@ -87,16 +64,22 @@ def main():
                 if 'snn' + str(x) is not rc_result.keys():
                     rc_result['snn' + str(x)] = ''
             bs.savedata(im, rc_result, file_create_time)
-            bs.savestatistic(ind)
+            bs.savestatistic(classforstatistic(rc_result))
         except Exception as e:
             print(e)
 
         finally:
             pass
 
-def clssforstatisitc(data):
+def classforstatistic(data):
     if data['fnn']['-1'] >= SCORE_STOP:
         return STOP_CLASS
+    ik = max(data, key=data.get)
+    if ik == 0:
+        return EMPTY_CLASS
+    if ik == 1:
+        return IMERROR_CLASS
+    return data['snn'] + 2
 
 
 if __name__ == '__main__':
