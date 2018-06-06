@@ -124,7 +124,6 @@ class RecognizeK2(object):
         im_p = np.array(image, dtype='float') / 255.0
         im_p = np.expand_dims(im_p, axis=-1)
         im_p = np.expand_dims(im_p, axis=0)
-        print(im_p.shape)
         dict, ind = self.list_to_dict(self.fnn.predict(im_p)[0])
         nn_result['fnn'] = dict
         if ind == 2:
@@ -136,8 +135,15 @@ class RecognizeK2(object):
             im_d = np.expand_dims(im_d, -1)
             im_d = np.expand_dims(im_d, 0)
             net_out_value = sess.run(net_out, feed_dict={net_inp: im_d})
+            snn1text = self.decode_batch(net_out_value)[0]
+            ln = len(snn1text)
+            if ln < 4:
+                for i in range(0, 4 - ln):
+                    snn1text = snn1text + '1'
+            if ln > 4:
+                snn1text = snn1text[0:4]
             pred_texts = []
-            pred_texts.append(self.decode_batch(net_out_value)[0])
+            pred_texts.append(snn1text)
             pred_texts.append('')
             pred_texts.append('')
             for x in range(0, 4):

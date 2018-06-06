@@ -1,7 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="azure">
+  <component name="PublishConfigData" autoUpload="Always" serverName="skzasutp0004">
     <serverData>
+      <paths name="Copy of project-level server 'skzasutp0004'">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_459" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Copy of project-level server 'skzasutp0004' (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/administrator/AI-K2-UB" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="azure">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="skzasutp0003">
         <serverdata>
           <mappings>
@@ -12,10 +33,11 @@
       <paths name="skzasutp0004">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/administrator/cam6/script" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/tmp/pycharm_project_315" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

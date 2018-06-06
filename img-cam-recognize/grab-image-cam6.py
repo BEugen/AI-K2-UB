@@ -8,7 +8,6 @@ import tempfile
 from datetime import datetime
 
 
-
 SCORE_STOP = 0.7
 STOP_CLASS = -1
 EMPTY_CLASS = 0
@@ -35,6 +34,7 @@ def list_to_dict(li):
 def main():
     rc = recognize.RecognizeK2()
     bs = base.Psql()
+
     while True:
         time.sleep(25)
         try:
@@ -45,12 +45,13 @@ def main():
             file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
             file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
             im = cv2.imread(file_obj.name)
+            file_obj.close()
             x1, x2, y1, y2 = bs.getcropimg()
             if x1 is None:
                 continue
             im = im[y1:y2, x1:x2]
-            cv2.imwrite('CAM6.jpg', im, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             rc_result = rc.recognize(im)
+            print(rc_result)
             im_l, img_guid, img_tfile = bs.loadimglast()
             if file_create_time == img_tfile:
                 continue
@@ -61,20 +62,21 @@ def main():
                 rc_result['fnn']['-1'] = score
                 if score > SCORE_STOP:
                     bs.updateimglast(img_guid, score)
+                    bs.savestatistic(classforstatistic(rc_result))
                     continue
-
             for x in range(1, 4):
-                if 'snn' + str(x) is not rc_result.keys():
+                if 'snn' + str(x) is not rc_result:
+                    print(x)
                     rc_result['snn' + str(x)] = ''
-            if 'snn' is not rc_result.keys():
-                rc_result['snn'] = -1
+            rc_result['snn'] = classforstatistic(rc_result)
             bs.savedata(im, rc_result, file_create_time)
-            bs.savestatistic(classforstatistic(rc_result))
+            bs.savestatistic(rc_result['snn'])
+            print(rc_result)
         except Exception as e:
             print(e)
 
         finally:
-            pass
+            conn.close()
 
 def classforstatistic(data):
     if data['fnn']['-1'] >= SCORE_STOP:
