@@ -90,9 +90,9 @@ class RecognizeK2(object):
     def __prepare_img(self, img):
         (h, w) = img.shape[:2]
         point = (w / 3, h / 2)
-        M = cv2.getRotationMatrix2D(point, -15, 1.3)
+        M = cv2.getRotationMatrix2D(point, -5, 1.3)
         img = cv2.warpAffine(img, M, (w, h))
-        img = img[0:h, 30:190]
+        img = img[0:h, 5:w-5]
         img_nn_1_2 = np.zeros((224, 224 * 4 + 6), np.uint8)
         img_nn_3 = np.zeros((224, 224 * 4), np.uint8)
         for x in range(0, 4):
