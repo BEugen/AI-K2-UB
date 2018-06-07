@@ -17,14 +17,17 @@ from time import time
 from keras.models import model_from_json
 import tensorflow as tf
 import itertools
+import zlib
 
 sess = tf.Session()
 K.set_session(sess)
 
+WEIGHT_RESULT = {'snn1': 1.5, 'snn2': 1.0, 'snn3': 0.7}
+
 
 class RecognizeK2(object):
-    def __init__(self):
-        self.folder_nn = '/home/administrator/AI-K2-UB/img-cam-recognize/nn/'
+    def __init__(self, store=False, store_path=''):
+        self.folder_nn = 'nn/'
         self.pfnn = 'model_ln_fnn'
         self.psnn1 = 'model-ub-rnn-ia2'
         self.psnn2 = 'model_ln_snn_ic'
@@ -35,6 +38,8 @@ class RecognizeK2(object):
         self.snn1 = self.get_model_snn1()
         self.snn2 = self.get_model_snn2()
         self.snn3 = self.get_model_snn3()
+        self.store = store
+        self.store_path = store_path
 
     def __snn_result(self, text):
         if '32' in text and '2' in text.replace('32', '', 1):  # dust
@@ -161,9 +166,22 @@ class RecognizeK2(object):
                 pred_texts[2] = pred_texts[2] + str(ind)
             narr = np.zeros(3)
             for i in range(0, 3):
-                nn_result['snn' + str(i+1)] = pred_texts[i]
-                narr[i] = self.__snn_result(pred_texts[i])
+                key = 'snn' + str(i+1)
+                nn_result[key] = pred_texts[i]
+                narr[i] = self.__snn_result(pred_texts[i]) * WEIGHT_RESULT[key]
             nn_result['snn'] = round(narr.mean(), 0)
+        if self.store:
+            if ind == 2:
+                pt = self.store_path + '/' + str(nn_result['snn'])
+                nc = str(nn_result['snn'])
+            else:
+                pt = self.store_path + '/' + str(ind)
+                nc = str(ind)
+            if not os.path.exists(pt):
+                os.makedirs(pt)
+            img_code = zlib.crc32(np.ascontiguousarray(image)) % (1 << 32)
+            cv2.imwrite(pt + '/CAM_' + str(img_code) + '_' + nc + '.jpg',
+                        image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
         return nn_result
 
     def ctc_lambda_func(self, args):

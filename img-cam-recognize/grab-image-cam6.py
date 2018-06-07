@@ -7,6 +7,16 @@ from smb.SMBConnection import SMBConnection
 import tempfile
 from datetime import datetime
 
+CAM_NAME = 'CAM6'
+USER_NAME = 'Admin'
+PASS = '111'
+CLIENT_NAME = 'skzasutp0004'
+SERVER_NAME = 'VIDEOSRV-1'
+SERVER_IP = '192.168.0.1'
+
+FILE_FOLDER = 'Thumbs'
+FILE_NAME = 'cam6.jpg'
+STORE_PATH = '/home/administrator/cam6/'
 
 SCORE_STOP = 0.7
 STOP_CLASS = -1
@@ -32,7 +42,7 @@ def list_to_dict(li):
 
 
 def main():
-    rc = recognize.RecognizeK2()
+    rc = recognize.RecognizeK2(store=True, store_path='img')
     bs = base.Psql()
 
     while True:
@@ -51,7 +61,6 @@ def main():
                 continue
             im = im[y1:y2, x1:x2]
             rc_result = rc.recognize(im)
-            print(rc_result)
             im_l, img_guid, img_tfile = bs.loadimglast()
             if file_create_time == img_tfile:
                 continue
@@ -65,8 +74,9 @@ def main():
                     bs.savestatistic(classforstatistic(rc_result))
                     continue
             for x in range(1, 4):
-                if 'snn' + str(x) is not rc_result:
-                    print(x)
+                if 'snn' + str(x) in rc_result.keys():
+                    continue
+                else:
                     rc_result['snn' + str(x)] = ''
             rc_result['snn'] = classforstatistic(rc_result)
             bs.savedata(im, rc_result, file_create_time)
