@@ -126,7 +126,8 @@ class RecognizeK2(object):
     def recognize(self, image):
         nn_result = {}
         image = cv2.cvtColor(cv2.resize(image, (224, 224)), cv2.COLOR_BGR2GRAY)
-        im_p = np.array(image, dtype='float') / 255.0
+        im_p = self.__convert_image(image)
+        im_p = np.array(im_p, dtype='float') / 255.0
         im_p = np.expand_dims(im_p, axis=-1)
         im_p = np.expand_dims(im_p, axis=0)
         dict, ind = self.list_to_dict(self.fnn.predict(im_p)[0])
@@ -172,8 +173,8 @@ class RecognizeK2(object):
             nn_result['snn'] = round(narr.mean(), 0)
         if self.store:
             if ind == 2:
-                pt = self.store_path + '/' + str(nn_result['snn'])
-                nc = str(nn_result['snn'])
+                pt = self.store_path + '/' + str(int(nn_result['snn'] + 2))
+                nc = str(int(nn_result['snn'] + 2))
             else:
                 pt = self.store_path + '/' + str(ind)
                 nc = str(ind)

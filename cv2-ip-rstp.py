@@ -5,6 +5,7 @@ import threading
 
 FILE_PATH = 'D:/opencv-py/'
 FRAME_COUNT = 5
+RTSP = 'rtsp://admin:123456Qw@172.31.182.138:554/Streaming/channels/102'
 
 def write_img(path, img, fr):
     time_now = datetime.now().strftime('%d-%m-%y %H-%M-%S')
@@ -12,7 +13,7 @@ def write_img(path, img, fr):
 
 
 def main():
-    cap = cv2.VideoCapture('rtsp://192.168.0.30:554/av0_0')
+    cap = cv2.VideoCapture(RTSP)
     fr = 0
     fr_ind = FRAME_COUNT
     while True:
@@ -25,9 +26,8 @@ def main():
                 fr_ind = FRAME_COUNT
             fr = fr + 1
             fr_ind = fr_ind - 1
-            #time.sleep(0.5)
         else:
-            cap = cv2.VideoCapture('rtsp://192.168.0.30:554/av0_0')
+            cap = cv2.VideoCapture(RTSP)
 
 
 
