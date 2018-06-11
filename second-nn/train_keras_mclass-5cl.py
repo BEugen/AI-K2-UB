@@ -22,7 +22,7 @@ NB_EPOCH = 100
 NB_CLASSES = 2
 VERBOSE = 1
 VALIDATION_SPLIT = 0.25
-OPTIM = SGD()#Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
+OPTIM = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0)
 
 
 FOLDER_RESULT = ''
@@ -114,7 +114,7 @@ def main(args):
     #                          histogram_freq=1)
     # fit
     model = LeNet()
-    model.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=OPTIM, metrics=['accuracy'])
     history = model.fit(X_train, Y_train, batch_size=args.batch_size, epochs=args.epochs, verbose=VERBOSE,
                         validation_data=(X_test, Y_test),
                         validation_split=VALIDATION_SPLIT, callbacks=[log, tb, checkpoint])
