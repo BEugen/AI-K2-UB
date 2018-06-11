@@ -1,23 +1,14 @@
 import numpy as np
-import time
-import numpy as np
 import os
-import json
-import shutil
 import cv2
 from keras import backend as K
 from keras.optimizers import SGD, Adam
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers import Input, Dense, Activation
-from keras.layers import Reshape, Lambda
-from keras.layers.merge import add, concatenate
 from keras.models import Model, load_model
-from keras.layers.recurrent import GRU
-from time import time
 from keras.models import model_from_json
 import tensorflow as tf
 import itertools
 import zlib
+import math
 
 sess = tf.Session()
 K.set_session(sess)
@@ -57,6 +48,19 @@ class RecognizeK2(object):
         if '22' in text and '1' in text.replace('31', '', 1):  # dust
             return 0
         return 1  # dust + bricket
+
+    def __snn_calc_result(self, snn):
+        rc_snn = []
+        for i in range(0, 3):
+            t = []
+            for x in range(0, 4):
+                rc = int(snn[i][x])
+                if x > 1:
+                    t.append(rc)
+            if len(t) > 0:
+                rc_snn.append(np.mean(t) * WEIGHT_RESULT['snn' + str(i + 1)])
+        result = math.floor(np.mean(rc_snn)) - 2
+        return 2 if result > 2 else result if result > 0 else 0
 
     def __convert_image(self, img):
         kern = self.__build_filters()
@@ -143,7 +147,7 @@ class RecognizeK2(object):
         point = (w / 3, h / 2)
         M = cv2.getRotationMatrix2D(point, -5, 1.3)
         img = cv2.warpAffine(img, M, (w, h))
-        img = img[0:h, 5:w-5]
+        img = img[0:h, 5:w - 5]
         img_nn_1_2 = np.zeros((224, 224 * 4 + 6), np.uint8)
         img_nn_3 = np.zeros((224, 224 * 4), np.uint8)
         for x in range(0, 4):
@@ -217,12 +221,12 @@ class RecognizeK2(object):
                 pred_texts[1] = pred_texts[1] + str(ind)
                 dict, ind = self.list_to_dict(self.snn3.predict(im_nn_3)[0])
                 pred_texts[2] = pred_texts[2] + str(ind)
-            narr = np.zeros(3)
-            for i in range(0, 3):
-                key = 'snn' + str(i+1)
-                nn_result[key] = pred_texts[i]
-                narr[i] = self.__snn_result(pred_texts[i]) * WEIGHT_RESULT[key]
-            nn_result['snn'] = round(narr.mean(), 0)
+            # narr = np.zeros(3)
+            # for i in range(0, 3):
+            #    key = 'snn' + str(i + 1)
+            #    nn_result[key] = pred_texts[i]
+            #    narr[i] = self.__snn_result(pred_texts[i]) * WEIGHT_RESULT[key]
+            nn_result['snn'] = self.__snn_calc_result(pred_texts)  # round(narr.mean(), 0)
         if self.store:
             if ind == 2:
                 pt = self.store_path + '/' + str(int(nn_result['snn'] + 2))

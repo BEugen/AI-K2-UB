@@ -2,11 +2,11 @@ import os
 import numpy as np
 import cv2
 
-IMAGE = {'0': '../Sorted/0/',
-         '1': '../Sorted/1/',
-         '2': '../Sorted/2/',
-         '3': '../Sorted/3/',
-         '4': '../Sorted/4/'}
+IMAGE = {'0': '../img/Class/0/',
+         '1': '../img/Class/1/',
+         '2': '../img/Class/2/',
+         '3': '../img/Class/3/',
+         '4': '../img/Class/4/'}
 IMAGE_PATH_STORE_TRAIN = '../Imagetrain/train/'
 IMAGE_PATH_STORE_TEST = '../Imagetrain/test/'
 IMAGE_CLASS = '1'

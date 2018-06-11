@@ -24,7 +24,7 @@ NB_CLASSES = 2
 VERBOSE = 1
 VALIDATION_SPLIT = 0.25
 INIT_LR = 1e-3
-OPTIM = SGD()#Adam(lr=INIT_LR, decay=INIT_LR / NB_EPOCH)
+OPTIM = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0)
 
 
 
