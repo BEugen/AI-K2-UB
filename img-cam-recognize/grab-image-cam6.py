@@ -1,6 +1,6 @@
 
 import cv2
-import base, recognize
+import base, recognize, video_capture
 from skimage.measure import compare_ssim
 import time
 from smb.SMBConnection import SMBConnection
@@ -44,21 +44,27 @@ def list_to_dict(li):
 def main():
     rc = recognize.RecognizeK2(store=True, store_path='img')
     bs = base.Psql()
-
+    vc = video_capture.VideoCap()
+    vc.start_capture('rtsp://admin:123456Qw@192.168.0.28:554/Streaming/channels/102')
     while True:
-        time.sleep(25)
+        time.sleep(10)
         try:
-            conn = SMBConnection(USER_NAME, PASS, CLIENT_NAME, SERVER_NAME, use_ntlm_v2=True)
-            conn.connect(SERVER_IP, 139)
-            file_obj = tempfile.NamedTemporaryFile()
-            conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
-            file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
-            file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
-            im = cv2.imread(file_obj.name)
-            file_obj.close()
+            # conn = SMBConnection(USER_NAME, PASS, CLIENT_NAME, SERVER_NAME, use_ntlm_v2=True)
+            # conn.connect(SERVER_IP, 139)
+            # file_obj = tempfile.NamedTemporaryFile()
+            # conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
+            # file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
+            # file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
+
+            im, file_create_time = vc.image()
+            #file_obj.close()
             x1, x2, y1, y2 = bs.getcropimg()
             if x1 is None:
                 continue
+            (h, w) = im.shape[:2]
+            point = (w / 2, h / 2)
+            M = cv2.getRotationMatrix2D(point, -5, 1.0)
+            im = cv2.warpAffine(im, M, (w, h))
             im = im[y1:y2, x1:x2]
             rc_result = rc.recognize(im)
             im_l, img_guid, img_tfile = bs.loadimglast()
@@ -86,7 +92,8 @@ def main():
             print(e)
 
         finally:
-            conn.close()
+            pass
+            #conn.close()
 
 def classforstatistic(data):
     if data['fnn']['-1'] >= SCORE_STOP:

@@ -22,16 +22,16 @@ import zlib
 sess = tf.Session()
 K.set_session(sess)
 
-WEIGHT_RESULT = {'snn1': 1.5, 'snn2': 1.0, 'snn3': 0.7}
+WEIGHT_RESULT = {'snn1': 1.5, 'snn2': 0.7, 'snn3': 1.0}
 
 
 class RecognizeK2(object):
     def __init__(self, store=False, store_path=''):
         self.folder_nn = 'nn/'
         self.pfnn = 'model_ln_fnn'
-        self.psnn1 = 'model-ub-rnn-ia2'
-        self.psnn2 = 'model_ln_snn_ic'
-        self.psnn3 = 'model_ln_snn_in'
+        self.psnn1 = 'model-ub-rnn-ia3'
+        self.psnn2 = 'model_ub-ln_snn2'
+        self.psnn3 = 'model_ub-ln_snn3'
         self.letters = sorted(list({'0', '1', '2', '3', '4', '5'}))
         self.max_len = 4
         self.fnn = self.get_model_fnn()
@@ -42,6 +42,12 @@ class RecognizeK2(object):
         self.store_path = store_path
 
     def __snn_result(self, text):
+        if '51' in text and '1' in text.replace('51', '', 1):  # bricket
+            return 2
+        if '55' in text and '1' in text.replace('51', '', 1):  # bricket
+            return 2
+        if '52' in text and '2' in text.replace('51', '', 1):  # bricket
+            return 2
         if '32' in text and '2' in text.replace('32', '', 1):  # dust
             return 0
         if '31' in text and '1' in text.replace('31', '', 1):  # dust
@@ -50,12 +56,6 @@ class RecognizeK2(object):
             return 0
         if '22' in text and '1' in text.replace('31', '', 1):  # dust
             return 0
-        if '51' in text and '1' in text.replace('51', '', 1):  # bricket
-            return 2
-        if '55' in text and '1' in text.replace('51', '', 1):  # bricket
-            return 2
-        if '52' in text and '2' in text.replace('51', '', 1):  # bricket
-            return 2
         return 1  # dust + bricket
 
     def __convert_image(self, img):
@@ -87,6 +87,57 @@ class RecognizeK2(object):
         kern /= 1.5 * kern.sum()
         return kern
 
+    def __build_filters2(self):
+        ksize = 5
+        theta = np.pi * 0.25
+        lamda = np.pi * 0.25
+        kern = cv2.getGaborKernel((ksize, ksize), 15.0, theta, lamda, 0.8, 0, ktype=cv2.CV_32F)
+        kern /= 1.5 * kern.sum()
+        return kern
+
+    def __convert_image2(self, img):
+        kern = self.__build_filters2()
+        mn = np.mean(img)
+        if mn > 124:
+            k = (mn - 124) * 0.85 / 124 + 0.85
+            img = cv2.multiply(img, k)
+        if mn < 100:
+            k = (mn - 100) * 1.85 / 100 + 1.85
+            img = cv2.multiply(img, k)
+        img = cv2.medianBlur(img, 7)
+        fimg = cv2.filter2D(img, cv2.CV_8UC3, kern)
+        mn = np.mean(fimg)
+        if mn < 80:
+            k = (mn - 80) * 1.1 / 80 + 1.1
+            fimg = cv2.multiply(fimg, k)
+        if mn > 100:
+            k = (mn - 100) * 1.1 / 100 + 1.1
+            fimg = cv2.multiply(fimg, k)
+        return fimg
+
+    def __convert_image3(self, img):
+        kern = self.__build_filters2()
+        mn = np.mean(img)
+        if mn > 124:
+            k = (mn - 124) * 0.85 / 124 + 0.85
+            img = cv2.multiply(img, k)
+        if mn < 100:
+            k = (mn - 100) * 1.85 / 100 + 1.85
+            img = cv2.multiply(img, k)
+        img = cv2.medianBlur(img, 7)
+        fimg = cv2.filter2D(img, cv2.CV_8UC3, kern)
+        mn = np.mean(fimg)
+        if mn < 80:
+            k = (mn - 80) * 1.1 / 80 + 1.1
+            fimg = cv2.multiply(fimg, k)
+        if mn > 100:
+            k = (mn - 100) * 1.1 / 100 + 1.1
+            fimg = cv2.multiply(fimg, k)
+        fimg = cv2.adaptiveThreshold(fimg, 10, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                     cv2.THRESH_BINARY_INV, 3, 1)
+        fimg = cv2.GaussianBlur(fimg, (3, 3), 0)
+        return fimg
+
     def __prepare_img(self, img):
         (h, w) = img.shape[:2]
         point = (w / 3, h / 2)
@@ -98,11 +149,11 @@ class RecognizeK2(object):
         for x in range(0, 4):
             y1, y2, x1, x2 = self.__section_img(x)
             im = cv2.resize(img[y1:y2, x1:x2], (224, 224))
-            img_nn_3[0:224, x * 224:x * 224 + 224] = im
+            img_nn_3[0:224, x * 224:x * 224 + 224] = self.__convert_image3(im)
             if x == 0:
-                img_nn_1_2[0:224, 0:224] = self.__convert_image(im)
+                img_nn_1_2[0:224, 0:224] = self.__convert_image2(im)
             else:
-                img_nn_1_2[0:224, x * 226:x * 226 + 224] = self.__convert_image(im)
+                img_nn_1_2[0:224, x * 226:x * 226 + 224] = self.__convert_image2(im)
         return img_nn_1_2, img_nn_3
 
     def __section_img(self, index):
