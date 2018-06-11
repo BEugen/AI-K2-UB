@@ -49,15 +49,7 @@ def main():
     while True:
         time.sleep(10)
         try:
-            # conn = SMBConnection(USER_NAME, PASS, CLIENT_NAME, SERVER_NAME, use_ntlm_v2=True)
-            # conn.connect(SERVER_IP, 139)
-            # file_obj = tempfile.NamedTemporaryFile()
-            # conn.retrieveFile(FILE_FOLDER, '/' + FILE_NAME, file_obj)
-            # file_attributes = conn.getAttributes(FILE_FOLDER, '/' + FILE_NAME)
-            # file_create_time = datetime.fromtimestamp(file_attributes.last_write_time)
-
             im, file_create_time = vc.image()
-            #file_obj.close()
             x1, x2, y1, y2 = bs.getcropimg()
             if x1 is None:
                 continue
@@ -66,9 +58,11 @@ def main():
             M = cv2.getRotationMatrix2D(point, -5, 1.0)
             im = cv2.warpAffine(im, M, (w, h))
             im = im[y1:y2, x1:x2]
+            print('recognize')
             rc_result = rc.recognize(im)
             im_l, img_guid, img_tfile = bs.loadimglast()
             if file_create_time == img_tfile:
+                print(file_create_time, img_tfile)
                 continue
             if im_l is not None and len(im_l) > 0:
                 grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)

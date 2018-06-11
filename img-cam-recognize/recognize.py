@@ -183,6 +183,7 @@ class RecognizeK2(object):
         im_p = np.expand_dims(im_p, axis=0)
         dict, ind = self.list_to_dict(self.fnn.predict(im_p)[0])
         nn_result['fnn'] = dict
+        print(dict, ind)
         if ind == 2:
             img_1_2, img_3 = self.__prepare_img(image)
             net_inp = self.snn1.get_layer(name='the_input').input
