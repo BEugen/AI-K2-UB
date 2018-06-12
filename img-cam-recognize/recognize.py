@@ -59,8 +59,8 @@ class RecognizeK2(object):
                     t.append(rc)
             if len(t) > 0:
                 rc_snn.append(np.mean(t) * WEIGHT_RESULT['snn' + str(i + 1)])
-        result = math.floor(np.mean(rc_snn)) - 2
-        return 2 if result > 2 else result if result > 0 else 0
+        return math.floor(np.mean(rc_snn)) - 2
+        #return 2 if result > 2 else result if result > 0 else 0
 
     def __convert_image(self, img):
         kern = self.__build_filters()
