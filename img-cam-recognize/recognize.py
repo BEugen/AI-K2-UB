@@ -13,7 +13,7 @@ import math
 sess = tf.Session()
 K.set_session(sess)
 
-WEIGHT_RESULT = {'snn1': 1.5, 'snn2': 0.7, 'snn3': 1.0}
+WEIGHT_RESULT = {'snn1': 1.2, 'snn2': 0.8, 'snn3': 1.0}
 
 
 class RecognizeK2(object):
@@ -59,7 +59,8 @@ class RecognizeK2(object):
                     t.append(rc)
             if len(t) > 0:
                 rc_snn.append(np.mean(t) * WEIGHT_RESULT['snn' + str(i + 1)])
-        return math.floor(np.mean(rc_snn)) - 2
+        rc_calc = math.floor(np.mean(rc_snn)) - 2
+        return rc_calc if rc_calc < 5 else 4
         #return 2 if result > 2 else result if result > 0 else 0
 
     def __convert_image(self, img):
@@ -222,9 +223,9 @@ class RecognizeK2(object):
                 dict, ind = self.list_to_dict(self.snn3.predict(im_nn_3)[0])
                 pred_texts[2] = pred_texts[2] + str(ind)
             # narr = np.zeros(3)
-            # for i in range(0, 3):
-            #    key = 'snn' + str(i + 1)
-            #    nn_result[key] = pred_texts[i]
+            for i in range(0, 3):
+                key = 'snn' + str(i + 1)
+                nn_result[key] = pred_texts[i]
             #    narr[i] = self.__snn_result(pred_texts[i]) * WEIGHT_RESULT[key]
             nn_result['snn'] = self.__snn_calc_result(pred_texts)  # round(narr.mean(), 0)
         if self.store:
