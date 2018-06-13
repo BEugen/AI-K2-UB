@@ -18,7 +18,7 @@ FILE_FOLDER = 'Thumbs'
 FILE_NAME = 'cam6.jpg'
 STORE_PATH = '/home/administrator/cam6/'
 
-SCORE_STOP = 0.7
+SCORE_STOP = 0.85
 STOP_CLASS = -1
 EMPTY_CLASS = 0
 DUST_CLASS = 2
@@ -60,15 +60,16 @@ def main():
             im = im[y1:y2, x1:x2]
             print('recognize')
             rc_result = rc.recognize(im)
+            print(rc_result)
             im_l, img_guid, img_tfile = bs.loadimglast()
             if file_create_time == img_tfile:
-                print(file_create_time, img_tfile)
                 continue
             if im_l is not None and len(im_l) > 0:
                 grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)
                 grayB = cv2.cvtColor(cv2.resize(im_l, (224, 224)), cv2.COLOR_BGR2GRAY)
                 (score, diff) = compare_ssim(grayA, grayB, full=True)
                 rc_result['fnn']['-1'] = score
+                print(score)
                 if score > SCORE_STOP:
                     bs.updateimglast(img_guid, score)
                     bs.savestatistic(classforstatistic(rc_result))
@@ -97,7 +98,7 @@ def classforstatistic(data):
         return EMPTY_CLASS
     if ik == 1:
         return IMERROR_CLASS
-    return data['snn'] + 2
+    return data['snn']
 
 
 if __name__ == '__main__':
