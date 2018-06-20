@@ -18,7 +18,7 @@ FILE_FOLDER = 'Thumbs'
 FILE_NAME = 'cam6.jpg'
 STORE_PATH = '/home/administrator/cam6/'
 
-SCORE_STOP = 0.85
+SCORE_STOP = 0.95
 STOP_CLASS = -1
 EMPTY_CLASS = 0
 DUST_CLASS = 2

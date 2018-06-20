@@ -13,7 +13,7 @@ import math
 sess = tf.Session()
 K.set_session(sess)
 
-WEIGHT_RESULT = {'snn1': 1.2, 'snn2': 1.2, 'snn3': 0.8}
+WEIGHT_RESULT = {'snn1': 1.1, 'snn2': 1.1, 'snn3': 0.9}
 
 
 class RecognizeK2(object):
@@ -51,22 +51,24 @@ class RecognizeK2(object):
 
     def __snn_calc_result(self, snn):
         rc_snn = []
-        for i in range(0, 3):
+        print(snn)
+        for i in range(0, 4):
             t = []
-            for x in range(0, 4):
-                rc = int(snn[i][x])
-                if x > 1:
-                    t.append(rc)
+            for x in range(0, 3):
+                rc = int(snn[x][i])
+                if rc > 1:
+                    t.append(float(rc) * WEIGHT_RESULT['snn' + str(x + 1)])
             if len(t) > 0:
-                rc_snn.append(np.mean(t) * WEIGHT_RESULT['snn' + str(i + 1)])
-        rc_calc = math.ceil(np.mean(rc_snn))
-        if rc_calc >= 5:
+                rc_snn.append(np.mean(t))
+        rc_calc = np.mean(rc_snn)
+        print(rc_calc)
+        if rc_calc >= 4:
             return 4
-        if rc_calc == 4:
+        if rc_calc >= 3:
             return 3
         if rc_calc >= 2 and rc_calc <= 3 :
             return 2
-        #return 2 if result > 2 else result if result > 0 else 0
+        return rc_calc
 
     def __convert_image(self, img):
         kern = self.__build_filters()
