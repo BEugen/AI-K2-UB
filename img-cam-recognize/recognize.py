@@ -60,7 +60,7 @@ class RecognizeK2(object):
                     t.append(float(rc) * WEIGHT_RESULT['snn' + str(x + 1)])
             if len(t) > 0:
                 rc_snn.append(np.mean(t))
-        rc_calc = np.mean(rc_snn)
+        rc_calc = math.floor(np.mean(rc_snn))
         print(rc_calc)
         if rc_calc >= 4:
             return 4
