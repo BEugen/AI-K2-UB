@@ -13,7 +13,7 @@ import math
 sess = tf.Session()
 K.set_session(sess)
 
-WEIGHT_RESULT = {'snn1': 1.1, 'snn2': 1.1, 'snn3': 0.9}
+WEIGHT_RESULT = {'snn1': 1.0, 'snn2': 1.0, 'snn3': 1.0}
 
 
 class RecognizeK2(object):
@@ -60,13 +60,13 @@ class RecognizeK2(object):
                     t.append(float(rc) * WEIGHT_RESULT['snn' + str(x + 1)])
             if len(t) > 0:
                 rc_snn.append(np.mean(t))
-        rc_calc = math.floor(np.mean(rc_snn))
+        rc_calc = np.mean(rc_snn)
         print(rc_calc)
         if rc_calc >= 4:
             return 4
-        if rc_calc >= 3:
+        if rc_calc > 3.5:
             return 3
-        if rc_calc >= 2 and rc_calc <= 3 :
+        if rc_calc >= 2 and rc_calc <= 3.5 :
             return 2
         return rc_calc
 
