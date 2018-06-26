@@ -91,13 +91,13 @@ def main():
             #conn.close()
 
 def classforstatistic(data):
-    if data['fnn']['-1'] >= SCORE_STOP:
-        return STOP_CLASS
     ik = int(max(data['fnn'], key=data['fnn'].get))
     if ik == 0:
         return EMPTY_CLASS
     if ik == 1:
         return IMERROR_CLASS
+    if data['fnn']['-1'] >= SCORE_STOP:
+        return STOP_CLASS
     return data['snn']
 
 
