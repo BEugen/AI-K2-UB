@@ -68,7 +68,7 @@ def main():
                 grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)
                 grayB = cv2.cvtColor(cv2.resize(im_l, (224, 224)), cv2.COLOR_BGR2GRAY)
                 (score, diff) = compare_ssim(grayA, grayB, full=True)
-                rc_result['fnn']['-1'] = score
+                rc_result['sck'] = score
                 print(score)
                 if score > SCORE_STOP:
                     bs.updateimglast(img_guid, score)
@@ -91,13 +91,13 @@ def main():
             #conn.close()
 
 def classforstatistic(data):
+    if data['sck'] >= SCORE_STOP:
+        return STOP_CLASS
     ik = int(max(data['fnn'], key=data['fnn'].get))
     if ik == 0:
         return EMPTY_CLASS
     if ik == 1:
         return IMERROR_CLASS
-    if data['fnn']['-1'] >= SCORE_STOP:
-        return STOP_CLASS
     return data['snn']
 
 

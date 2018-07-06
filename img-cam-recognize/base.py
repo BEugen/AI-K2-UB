@@ -117,7 +117,7 @@ class Psql(object):
                     (str(guid), datetime.now(),  float(data['fnn']['0']),
                      float(data['fnn']['1']), float(data['fnn']['2']), data['snn1'], data['snn2'], data['snn3'],
                      float(data['snn']),
-                     buff.decode('utf-8'), tfile, float(data['fnn']['-1'])))
+                     buff.decode('utf-8'), tfile, float(data['sck'])))
         self.connect.commit()
         cur.close()
 
