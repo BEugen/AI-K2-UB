@@ -74,6 +74,9 @@ class Psql(object):
         cur = self.connect.cursor()
         cur.execute("SELECT * FROM aik2_convstat order by start desc LIMIT 1")
         data = cur.fetchall()
+        cur.execute("SELECT * FROM aik2_conv2seconds where aik2_conv2seconds.nclass = %s "
+                    "order by aik2_conv2seconds.ndate desc LIMIT 1;", (nclass,))
+        srow = cur.fetchall()
         if len(data) == 0:
             cur.execute("INSERT INTO aik2_convstat VALUES(%s, %s, %s)",
                         (str(guid), nclass, datetime.now()))
@@ -81,7 +84,18 @@ class Psql(object):
             row = data[0]
             curr_time = datetime.now()
             st_time = row[2]
+            delta_time = ((curr_time - timedelta(seconds=1)) - st_time).total_seconds()
             if row[1] != nclass:
+                if srow and len(srow) > 0:
+                    srow = srow[0]
+                    cur.execute("UPDATE aik2_conv2seconds SET seconds = %s WHERE  id = %s",
+                                (delta_time + srow[3], str(srow[0])))
+                else:
+                    cur.execute("INSERT INTO aik2_conv2seconds VALUES(%s, %s, %s, %s)",
+                                (str(uuid.uuid4()), nclass,
+                                 datetime(curr_time.year, curr_time.month, curr_time.day, 0, 0, 0, tzinfo=pytz.UTC),
+                                 delta_time))
+
                 cur.execute("UPDATE aik2_convstat SET \"end\" = %s WHERE  id = %s",
                             (curr_time - timedelta(seconds=1), str(row[0])))
                 cur.execute("INSERT INTO aik2_convstat VALUES(%s, %s, %s)",
@@ -92,6 +106,15 @@ class Psql(object):
                             (cm_time, str(row[0])))
                 cur.execute("INSERT INTO aik2_convstat VALUES(%s, %s, %s)",
                             (str(uuid.uuid4()), nclass, cm_time + timedelta(seconds=1)))
+                delta_time = (cm_time - st_time).total_seconds()
+                if srow and len(srow) > 0:
+                    cur.execute("UPDATE aik2_conv2seconds SET seconds = %s WHERE  id = %s",
+                                delta_time + srow[3], str(srow[0]))
+                else:
+                    cur.execute("INSERT INTO aik2_conv2seconds VALUES(%s, %s, %s, %s)",
+                                (str(uuid.uuid4()), nclass,
+                                 datetime(curr_time.year, curr_time.month, curr_time.day, 0, 0, 0, tzinfo=pytz.UTC),
+                                 delta_time))
         self.connect.commit()
         cur.close()
 
