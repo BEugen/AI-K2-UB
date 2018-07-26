@@ -1,7 +1,7 @@
 import psycopg2
 import base64
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import cv2, numpy as np
 import pytz
 
@@ -82,12 +82,14 @@ class Psql(object):
                         (str(guid), nclass, datetime.now()))
         else:
             row = data[0]
-            curr_time = datetime.now()
-            st_time = row[2]
+            curr_time = datetime.now().replace(tzinfo=None)
+            st_time = row[2].replace(tzinfo=None)
             delta_time = ((curr_time - timedelta(seconds=1)) - st_time).total_seconds()
             sec_dtime = datetime(curr_time.year, curr_time.month, curr_time.day, 0, 0, 0, tzinfo=pytz.UTC)
+            prev_dtime = srow[0][2].replace(tzinfo=None)
+            prev_dtime = datetime(prev_dtime.year, prev_dtime.month, prev_dtime.day, 0, 0, 0, tzinfo=pytz.UTC)
             if row[1] != nclass:
-                if srow and len(srow) > 0 and sec_dtime == srow[0][1]:
+                if srow and len(srow) > 0 and sec_dtime == prev_dtime:
                     rsrow = srow[0]
                     cur.execute("UPDATE aik2_conv2seconds SET seconds = %s WHERE  id = %s",
                                 (delta_time + rsrow[3], str(rsrow[0])))
@@ -106,7 +108,7 @@ class Psql(object):
                 cur.execute("INSERT INTO aik2_convstat VALUES(%s, %s, %s)",
                             (str(uuid.uuid4()), nclass, cm_time + timedelta(seconds=1)))
                 delta_time = (cm_time - st_time).total_seconds()
-                if srow and len(srow) > 0 and sec_dtime == srow[0][1]:
+                if srow and len(srow) > 0 and sec_dtime == prev_dtime:
                     nsrow = srow[0]
                     cur.execute("UPDATE aik2_conv2seconds SET seconds = %s WHERE  id = %s",
                                 delta_time + nsrow[3], str(nsrow[0]))
