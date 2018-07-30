@@ -74,14 +74,14 @@ class Psql(object):
         cur = self.connect.cursor()
         cur.execute("SELECT * FROM aik2_convstat order by start desc LIMIT 1")
         data = cur.fetchall()
-        cur.execute("SELECT * FROM aik2_conv2seconds where aik2_conv2seconds.nclass = %s "
-                    "order by aik2_conv2seconds.ndate desc LIMIT 1;", (nclass,))
-        srow = cur.fetchall()
         if len(data) == 0:
             cur.execute("INSERT INTO aik2_convstat VALUES(%s, %s, %s)",
                         (str(guid), nclass, datetime.now()))
         else:
             row = data[0]
+            cur.execute("SELECT * FROM aik2_conv2seconds where aik2_conv2seconds.nclass = %s "
+                        "order by aik2_conv2seconds.ndate desc LIMIT 1;", (row[1],))
+            srow = cur.fetchall()
             curr_time = datetime.now().replace(tzinfo=None)
             st_time = row[2].replace(tzinfo=None)
             delta_time = ((curr_time - timedelta(seconds=1)) - st_time).total_seconds()
