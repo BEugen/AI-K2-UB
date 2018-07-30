@@ -65,9 +65,13 @@ def main():
             if file_create_time == img_tfile:
                 continue
             if im_l is not None and len(im_l) > 0:
-                grayA = cv2.cvtColor(cv2.resize(im, (224, 224)), cv2.COLOR_BGR2GRAY)
-                grayB = cv2.cvtColor(cv2.resize(im_l, (224, 224)), cv2.COLOR_BGR2GRAY)
-                (score, diff) = compare_ssim(grayA, grayB, full=True)
+                grayA_0 = cv2.cvtColor(cv2.resize(im[35:85, 144:194], (224, 224)), cv2.COLOR_BGR2GRAY)
+                grayB_0 = cv2.cvtColor(cv2.resize(im_l[35:85, 144:194], (224, 224)), cv2.COLOR_BGR2GRAY)
+                grayA_1 = cv2.cvtColor(cv2.resize(im[120:170, 3:53], (224, 224)), cv2.COLOR_BGR2GRAY)
+                grayB_1 = cv2.cvtColor(cv2.resize(im_l[120:170, 3:53], (224, 224)), cv2.COLOR_BGR2GRAY)
+                (score_0, diff_0) = compare_ssim(grayA_0, grayB_0, full=True)
+                (score_1, diff_1) = compare_ssim(grayA_1, grayB_1, full=True)
+                score = score_0 if score_0 < score_1 else score_1
                 rc_result['sck'] = score
                 print(score)
                 if score > SCORE_STOP:
