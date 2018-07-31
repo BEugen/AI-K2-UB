@@ -82,6 +82,7 @@ class Psql(object):
             cur.execute("SELECT * FROM aik2_conv2seconds where aik2_conv2seconds.nclass = %s "
                         "order by aik2_conv2seconds.ndate desc LIMIT 1;", (row[1],))
             srow = cur.fetchall()
+
             curr_time = datetime.now().replace(tzinfo=None)
             st_time = row[2].replace(tzinfo=None)
             delta_time = ((curr_time - timedelta(seconds=1)) - st_time).total_seconds()
@@ -95,7 +96,7 @@ class Psql(object):
                                 (delta_time + rsrow[3], str(rsrow[0])))
                 else:
                     cur.execute("INSERT INTO aik2_conv2seconds VALUES(%s, %s, %s, %s)",
-                                (str(uuid.uuid4()), nclass, sec_dtime, delta_time))
+                                (str(uuid.uuid4()), row[1], sec_dtime, delta_time))
 
                 cur.execute("UPDATE aik2_convstat SET \"end\" = %s WHERE  id = %s",
                             (curr_time - timedelta(seconds=1), str(row[0])))
